@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Static Website with Image Resizing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .preview {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .preview img {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Resizing Website</h1>
+  <div class="container">
+    <form id="uploadForm">
+      <label for="imageUpload">Upload an image:</label>
+      <input type="file" id="imageUpload" accept="image/*">
+      <button type="submit">Upload and Resize</button>
+    </form>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    const apiUrl ='https://p3wb4iro98.execute-api.us-west-2.amazonaws.com/devel/image';
+    //'arn:aws:execute-api:us-west-2:414712314912:p3wb4iro98/image'; // Replace with your API Gateway endpoint
+
+    document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('imageUpload');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Please select an image file.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload image to S3
+      const uploadResponse = await fetch(apiUrl, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadResponse.ok) {
+        alert('Failed to upload image.');
+        return;
+      }
+
+      const responseData = await uploadResponse.json();
+      const resizedImageKey = responseData.resizedImageKey;
+
+      // Display resized image
+      const preview = document.getElementById('preview');
+      const resizedImageUrl = `https://${YOUR_CLOUDFRONT_DISTRIBUTION_DOMAIN}/${resizedImageKey}`;
+      preview.innerHTML = `<img src="${resizedImageUrl}" alt="Resized Image">`;
+    });
+  </script>
+</body>
+</html>
